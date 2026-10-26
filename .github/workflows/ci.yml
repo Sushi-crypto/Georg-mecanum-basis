@@ -1,0 +1,30 @@
+name: Continous Integration - C++ Docker Tests
+
+# 1. Wann soll die automatische Prüfstraße anspringen?
+# Jedes Mal, wenn du neuen Code hochlädst (push) oder 
+# zusammenführen willst (pull_request)!
+on:
+    push:
+        branches: [ main, master ]
+    pull_request:
+        branches: [ main, master ]
+
+jobs:
+    build-and-test:
+        # 2. Auf welchem Betriebssystem soll der Github-Cloud-Rechner starten?
+        runs-on: ubuntu-latest
+
+        steps:
+        # Schritt A: Lade deinen aktuellen C++-Code aus 
+        # Github auf den Prüf-Rechner
+         - name: Code auschecken
+           uses: actions/checkout@v4
+
+        # Schritt B: Baue deinen Docker Container 
+        # (genau wie du es lokal machst!)
+         - name: Docker Image bauen
+           run: docker build -f docker/Dockerfile -t mecanum-robot-test .
+
+        # Schritt C: Starte den Container und führe deine TDD-Tests durch
+         - name: TDD Smoke Tests im Container ausführen
+           run: docker run --rm mecanum-robot-test ./smoke_test
