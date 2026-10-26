@@ -18,5 +18,11 @@ RUN apt-get update && apt-get install -y \
 # 4. Das Arbeitsverzeichnis im Container festlegen
 WORKDIR /workspace
 
-# 5. Standardbefehl beim Starten des Containers
-CMD ["bash"]
+# 5. Kopiere deinen gesamten  C++-Code in den Container!
+COPY . /workspace
+
+# 6. Backe dein C++-Projekt direkt im Container fertig!
+RUN make
+
+# 7. Standardbefehl beim Starten des Containers
+CMD ["./smoke_test"]
