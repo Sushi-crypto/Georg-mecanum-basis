@@ -22,7 +22,7 @@ WORKDIR /workspace
 COPY . /workspace
 
 # 6. Backe dein C++-Projekt direkt im Container fertig!
-RUN make
+RUN cmake . && make
 
 # 7. Standardbefehl beim Starten des Containers
 CMD ["./smoke_test"]
