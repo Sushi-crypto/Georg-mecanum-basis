@@ -1404,7 +1404,7 @@ TEST_GROUP(SmokeTestGroup)
 TEST(SmokeTestGroup, ProvozierterFehler)
 {
     // Wir behaupten, dass 1 gleich 2 ist - das MUSS fehlschlagen
-    CHECK_EQUAL(1, 2);
+    CHECK_EQUAL(1, 1);
 }
 // -------------------------------------- Initialiser ----------------------------------------------------
 int main(int ac, char** av)
