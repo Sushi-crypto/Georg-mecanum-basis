@@ -1392,6 +1392,20 @@ TEST(SlamController3DTest, IntegrationSchwenkLidarMitBewegtemRoboter)
     DOUBLES_EQUAL(100.0, controller.getKarte().getZelle(2.0, 3.0, 0.0), 0.001);
 }
 
+// ------------------------------------ Rauchmelderalarm -------------------------------------------------
+
+// Testgruppe für Feueralarm
+TEST_GROUP(SmokeTestGroup)
+{
+
+};
+
+// Test 1: Fehler provozieren um zu sehen ob Pipeline streikt
+TEST(SmokeTestGroup, ProvozierterFehler)
+{
+    // Wir behaupten, dass 1 gleich 2 ist - das MUSS fehlschlagen
+    CHECK_EQUAL(1, 2);
+}
 // -------------------------------------- Initialiser ----------------------------------------------------
 int main(int ac, char** av)
 {
