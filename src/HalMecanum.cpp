@@ -21,6 +21,7 @@ double HalMecanum::getWheelSpeed(int wheelIndex) const {
 // Vorwärtsfahrt setzt alle 4 Räder auf die gleiche Geschwindigkeit
 void HalMecanum::setForwardVelocity(double speed) {
     for (int i = 0; i < 4; ++i){
+        commandedSpeeds[i] = speed; // Merk dir den Soll-Befehl!
         wheelSpeeds[i] = speed;
     }
 }
@@ -40,4 +41,18 @@ void HalMecanum::updateEncoderTicks(int wheelIndex, int ticksPerSecond) {
         const double TICKS_TO_MS = 1.0 / 2000.0;
         wheelSpeeds[wheelIndex] = ticksPerSecond * TICKS_TO_MS;
     }
+}
+
+// Plausibilitätschecks um Räder andauernd zu kontrollieren
+bool HalMecanum::isWheelStalled(int wheelIndex) const {
+    if (wheelIndex < 0 || wheelIndex >= 4) return false;
+
+    // Wenn wir mehr als 0.2 m/s befehlen, aber der Sensor unter 0.1m/s misst -> KLEMMT!
+    double commanded = commandedSpeeds[wheelIndex];
+    double measured = wheelSpeeds[wheelIndex];
+
+    if (commanded > 0.2 && measured < 0.1) {
+        return true; // Alarm!
+    }
+    return false;   // Alles ok!
 }

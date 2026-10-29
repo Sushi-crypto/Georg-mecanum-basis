@@ -62,3 +62,22 @@ TEST(HalTestGroup, EnkoderTicksAreConvertedToWheelSpeed)
     // Wir erwarten, dass getWheelSpeed(0) jetzt genau 1.0 m/s misst!
     DOUBLES_EQUAL(1.0,hal.getWheelSpeed(0), 0.0001);
 }
+
+// Test 5: Erkennt die HAL, wenn ein Rad klemmt?
+TEST(HalTestGroup, DetectsStalledWheel)
+{
+    HalMecanum hal;
+
+    // Wir befehlen Vorwärtsfahrt (1.0 m/s)
+    hal.setForwardVelocity(1.0);
+
+    // Aber der Enkoder sendet von Rad 0 stur 0 Ticks (Rad 0 klemmt!)
+    hal.updateEncoderTicks(0, 0);
+
+    // Die HAL muss jetzt erkennen, dass Rad 0 blockiert ist!
+    CHECK_TRUE(hal.isWheelStalled(0));
+
+    // Rad 1 dreht sich brav mit 2000 Ticks (1.0 m/s) -> Alles super!
+    hal.updateEncoderTicks(1, 2000);
+    CHECK_FALSE(hal.isWheelStalled(1));
+}
