@@ -11,8 +11,14 @@ pkg_check_modules(CPPUTEST REQUIRED cpputest)
 
 include_directories(${CPPUTEST_INCLUDE_DIRS})
 include_directories(include)
-# 2. Erstelle das Test-Programm aus unserer C++-Datei
-add_executable(smoke_test tests/SmokeTest.cpp)
 
-# 3. Verbinde das Test-Programm mit der CppUTest-Bibliothek
+# 3. Erstelle das Test-Programm aus unserer C++-Datei
+add_executable(smoke_test 
+    src/HalMecanum.cpp
+    tests/SmokeTest.cpp
+    tests/HalTest.cpp
+)
+
+# 4. Verbinde das Test-Programm mit der CppUTest-Bibliothek
 target_link_libraries(smoke_test ${CPPUTEST_LIBRARIES})
+
