@@ -5,6 +5,9 @@ class HalMecanum {
 public: 
     HalMecanum();
 
+    // Füttert rohe Enkoder-Ticks für ein Rad (wheelIndex 0...3)
+    void updateEncoderTicks(int wheelIndex, int ticksPerSecond);
+
     // Gibt die Geschwindigkeit eines Rads zurück
     // (0: Vorne Links, 1: Vorner rechts, 2: Hinten links, 
     // 3: Hinten Rechts)
@@ -16,7 +19,7 @@ public:
 
     // Befehl für das Seitlichfahren
     void setStrafeVelocity(double speed);
-    
+
 private: 
     double wheelSpeeds[4];
 };

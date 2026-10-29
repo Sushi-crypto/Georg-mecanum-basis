@@ -49,3 +49,16 @@ TEST(HalTestGroup, StrafeRightSetsDiagonalWheelSpeeds)
     DOUBLES_EQUAL(-1.0, hal.getWheelSpeed(2), 0.0001);  // HL
     DOUBLES_EQUAL(1.0, hal.getWheelSpeed(3), 0.0001);   // HR
 }
+
+// Test 4: Prüfe ob rohe Enkoder-Ticks korrekt in m/s umgerechnet wird
+TEST(HalTestGroup, EnkoderTicksAreConvertedToWheelSpeed)
+{
+    HalMecanum hal;
+
+    // Angenommen: 2000 Ticks pro Sekunde entsprechen exakt 1.0 m/s
+    // Dieser Befehl existiert noch nicht -> Test schlägt ROT fehl!
+    hal.updateEncoderTicks(0, 2000);
+
+    // Wir erwarten, dass getWheelSpeed(0) jetzt genau 1.0 m/s misst!
+    DOUBLES_EQUAL(1.0,hal.getWheelSpeed(0), 0.0001);
+}

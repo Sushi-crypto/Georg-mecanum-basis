@@ -32,3 +32,12 @@ void HalMecanum::setStrafeVelocity(double speed) {
     wheelSpeeds[2] = -speed; // Hinten Links: -
     wheelSpeeds[3] = speed; // Vorne Links: +
 }
+
+// Erzeugt rohe Enkoder-Ticks
+void HalMecanum::updateEncoderTicks(int wheelIndex, int ticksPerSecond) {
+    if (wheelIndex >= 0 && wheelIndex < 4) {
+        // Umrechnung von Ticks in echte Meter pro Sekunde!
+        const double TICKS_TO_MS = 1.0 / 2000.0;
+        wheelSpeeds[wheelIndex] = ticksPerSecond * TICKS_TO_MS;
+    }
+}
