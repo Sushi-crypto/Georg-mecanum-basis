@@ -43,6 +43,18 @@ void HalMecanum::updateEncoderTicks(int wheelIndex, int ticksPerSecond) {
     }
 }
 
+// Rotationsfahrt lässt die linke und rechte Seite entgegengesetzt drehen
+void HalMecanum::setRotationVelocity(double speed) {
+    wheelSpeeds[0] = speed; // Vorne Links: +
+    wheelSpeeds[1] = -speed; // Vorne Rechts: -
+    wheelSpeeds[2] = -speed; // Hinten Links: -
+    wheelSpeeds[3] = speed; // Hinten Rechts: +
+
+    for (int i = 0; i < 4; ++i) {
+        commandedSpeeds[i] = wheelSpeeds[i];
+    }
+}
+
 // Plausibilitätschecks um Räder andauernd zu kontrollieren
 bool HalMecanum::isWheelStalled(int wheelIndex) const {
     if (wheelIndex < 0 || wheelIndex >= 4) return false;

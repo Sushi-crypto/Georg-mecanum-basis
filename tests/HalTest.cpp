@@ -81,3 +81,20 @@ TEST(HalTestGroup, DetectsStalledWheel)
     hal.updateEncoderTicks(1, 2000);
     CHECK_FALSE(hal.isWheelStalled(1));
 }
+
+// Test 6: Rotiert die Basis im Uhrzeigersinn?
+
+TEST(HalTestGroup, RotateClockwiseSetsOppositeSideSpeed)
+{
+    HalMecanum hal;
+
+    hal.setRotationVelocity(1.0);
+
+    // Linke Räder (FL, HL) drehen vorwärts (+1.0), rechte Räder 
+    // (FR, HR) rückwärts (-1.0)
+    DOUBLES_EQUAL(1.0, hal.getWheelSpeed(0), 0.0001);   // Vorne Links
+    DOUBLES_EQUAL(-1.0, hal.getWheelSpeed(1), 0.0001);  // Vorne Rechts
+    DOUBLES_EQUAL(-1.0, hal.getWheelSpeed(2), 0.0001);  // Hinten Links
+    DOUBLES_EQUAL(1.0, hal.getWheelSpeed(3), 0.0001);   // Hinten Rechts
+}
+

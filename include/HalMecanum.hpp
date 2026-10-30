@@ -23,6 +23,9 @@ public:
     // Befehl für das Seitlichfahren
     void setStrafeVelocity(double speed);
 
+    // Rotationsgeschwindigkeit (psoitiv = im Uhrzeigersinn / nach rechts)
+    void setRotationVelocity(double speed);
+
 private: 
     double wheelSpeeds[4];
 
