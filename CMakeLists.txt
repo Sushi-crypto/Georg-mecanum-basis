@@ -19,6 +19,7 @@ add_executable(smoke_test
     tests/SmokeTest.cpp
     tests/HalTest.cpp
     tests/RobotSystemTest.cpp
+    tests/Bug3Test.cpp
 )
 
 # 4. Verbinde das Test-Programm mit der CppUTest-Bibliothek
