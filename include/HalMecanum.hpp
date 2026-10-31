@@ -26,6 +26,9 @@ public:
     // Rotationsgeschwindigkeit (psoitiv = im Uhrzeigersinn / nach rechts)
     void setRotationVelocity(double speed);
 
+    // Universal-Befehl für beliebige kombinierte Bewegungen
+    void drive(double vx, double vy, double omega);
+
 private: 
     double wheelSpeeds[4];
 

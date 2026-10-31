@@ -83,7 +83,6 @@ TEST(HalTestGroup, DetectsStalledWheel)
 }
 
 // Test 6: Rotiert die Basis im Uhrzeigersinn?
-
 TEST(HalTestGroup, RotateClockwiseSetsOppositeSideSpeed)
 {
     HalMecanum hal;
@@ -98,3 +97,23 @@ TEST(HalTestGroup, RotateClockwiseSetsOppositeSideSpeed)
     DOUBLES_EQUAL(1.0, hal.getWheelSpeed(3), 0.0001);   // Hinten Rechts
 }
 
+// Test 7: Kombinierte Bewegung (Vorwärts + Seitwärts + Rotation gelichzeitig)
+TEST(HalTestGroup, CombinedMovementCalculatesCorrect)
+{
+    HalMecanum hal;
+
+    // Beispiel-Befehl: vx = 1.0 m/s, vy = 0.5 m/s, omega = 0.2 rad/s
+    // Dieser Befehl existiert noch gar nicht!
+    hal.drive(1.0, 0.5, 0.2);
+
+    // Erwartete Mathematik nach der Mecanum-Formel:
+    // FL (0): 1.0 + 0.5 + 0.2 = 1.7
+    // FR (1): 1.0 - 0.5 - 0.2 = 0.3
+    // HL (2): 1.0 - 0.5 + 0.2 = 0.7
+    // HR (3): 1.0 + 0.5 - 0.2 = 1.3
+
+    DOUBLES_EQUAL(1.7, hal.getWheelSpeed(0), 0.0001); // Vorne Links
+    DOUBLES_EQUAL(0.3, hal.getWheelSpeed(1), 0.0001); // Vorne Rechts
+    DOUBLES_EQUAL(0.7, hal.getWheelSpeed(2), 0.0001); // Hinten Links
+    DOUBLES_EQUAL(1.3, hal.getWheelSpeed(3), 0.0001); // Hinten Rechts
+}

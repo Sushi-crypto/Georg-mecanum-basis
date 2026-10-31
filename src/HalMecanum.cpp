@@ -68,3 +68,15 @@ bool HalMecanum::isWheelStalled(int wheelIndex) const {
     }
     return false;   // Alles ok!
 }
+
+// Universal-Befehl von Vorwärts-, Seitwärts- und Drehbewegung
+void HalMecanum::drive(double vx, double vy, double omega) {
+    wheelSpeeds[0] = vx + vy + omega;   // Vorne Links
+    wheelSpeeds[1] = vx - vy - omega;   // Vorne Rechts
+    wheelSpeeds[2] = vx - vy + omega;   // Hinten Links
+    wheelSpeeds[3] = vx + vy - omega;   // Hinten Rechts
+
+    for (int i = 0; i < 4; ++i) {
+        commandedSpeeds[i] = wheelSpeeds[i];
+    }
+}
