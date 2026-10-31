@@ -1,6 +1,4 @@
 #include "CppUTest/TestHarness.h"
-
-// Header Dateien
 #include "HalMecanum.hpp"
 
 //----------------------- Testbereich -----------------------
@@ -23,8 +21,7 @@ TEST(HalTestGroup, InitialWheelSpeedsAreZero)
     }
 }
 
-// Test 2: Wenn wir 1.0 m/s vorwärts befehlen, müssen alle 4 Räder 
-// auf 1.0 m/s stehen!
+// Test 2: Wenn wir 1.0 m/s vorwärts befehlen, müssen alle 4 Räder auf 1.0 m/s stehen!
 TEST(HalTestGroup, DriveForwardSetsAllWheelSpeeds)
 {
     HalMecanum hal;
@@ -117,3 +114,7 @@ TEST(HalTestGroup, CombinedMovementCalculatesCorrect)
     DOUBLES_EQUAL(0.7, hal.getWheelSpeed(2), 0.0001); // Hinten Links
     DOUBLES_EQUAL(1.3, hal.getWheelSpeed(3), 0.0001); // Hinten Rechts
 }
+
+
+
+

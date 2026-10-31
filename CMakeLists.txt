@@ -15,8 +15,10 @@ include_directories(include)
 # 3. Erstelle das Test-Programm aus unserer C++-Datei
 add_executable(smoke_test 
     src/HalMecanum.cpp
+    src/RobotSystem.cpp
     tests/SmokeTest.cpp
     tests/HalTest.cpp
+    tests/RobotSystemTest.cpp
 )
 
 # 4. Verbinde das Test-Programm mit der CppUTest-Bibliothek
