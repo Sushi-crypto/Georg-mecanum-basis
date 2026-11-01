@@ -12,7 +12,7 @@
 #include "OccupancyGrid.h"
 #include "OccupancyGrid3D.h"
 #include "OdometryTracker.h"
-#include "PT2Regler.h"
+#include "PT2Regler.hpp"
 #include "RayCaster2D.h"
 #include "RayCaster3D.h"
 #include "ScanMatcher2D.h"

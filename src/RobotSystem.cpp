@@ -1,11 +1,14 @@
 #include "RobotSystem.hpp"
 
 void RobotSystem::verarbeiteScanUndFahre(const 
-    std::vector<LidarMessung>& scan, double vx, double vy, double omega)
+    std::vector<LidarMessung>& scan, double vx, double vy, double omega, double dt)
 {
-    // SLAM-Controller verarbeitet den LIDAR-Scan und zeichnet die Karte
+    // 1. SLAM-Controller verarbeitet den LIDAR-Scan und zeichnet die Karte
     slam.verarbeiteScan(scan);
 
-    // Befehl direkt an die HAL durchreichen
-    hal.drive(vx, vy, omega);
+    // 2. PT2-Filter glättet die Wunsch-Geschwindigkeit vx sanft in einer S-Kurve
+    double vxGeglaetet = pt2Vx.update(vx, dt);
+
+    // 3. Befehl direkt an die HAL durchreichen
+    hal.drive(vxGeglaetet, vy, omega);
 }

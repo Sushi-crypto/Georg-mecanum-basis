@@ -1,5 +1,5 @@
 #pragma once
-
+#include "PT2Regler.hpp"
 #include "IHalDrive.hpp"
 #include "SlamController2D.h"
 
@@ -11,6 +11,7 @@ class RobotSystem {
 private:
     IHalDrive& hal;  // Fahrwerk (z.B. HalMecanum)
     SlamController2D slam;  // SLAM-Kartierung
+    PT2Regler pt2Vx;    // S-Kurcenglättung für Vorwärtsgeschwindigkeit
 
 public:
     /**
@@ -22,16 +23,17 @@ public:
      */
     RobotSystem(IHalDrive& drivehardware, double kartenBreite, 
         double kartenHoehe, double aufloesung) : hal(drivehardware), 
-        slam(kartenBreite, kartenHoehe, aufloesung)
+        slam(kartenBreite, kartenHoehe, aufloesung), pt2Vx(0.0)
     {
     }
-
-    // Nimmt den LIDAR-Scan entgegen, aktualisiert SLAM und steuert das Fahrwerk
-    void verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, double vx, 
-        double vy, double omega);
 
     // Positions-Abfragen vom SLAM-Controller durchreichen
     double getX() const { return slam.getX(); }
     double getY() const { return slam.getY(); }
     double getTheta() const { return slam.getTheta(); }
+
+    // Nimmt den LIDAR-Scan entgegen, aktualisiert SLAM und steuert das Fahrwerk 
+    // inklusive PT2-Filter
+    void verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, 
+        double vx, double vy, double omega, double dt = 0.05);
 };

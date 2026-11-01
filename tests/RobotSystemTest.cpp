@@ -2,6 +2,7 @@
 #include "LidarMessung.h"
 #include "HalMecanum.hpp"
 #include "RobotSystem.hpp"
+#include "PT2Regler.hpp"
 #include <vector>
 
 // Testgruppe für Robotsystems
@@ -36,9 +37,31 @@ TEST(RobotSystemTestGroup, ProcessingScanTriggersDriveCommand)
     std::vector<LidarMessung> scan;
     scan.push_back({0.0, 2.0}); // 0 Grad, 2.0 Meter
 
+    // Wir fordern 0.5 m/s Vorwärtsfahrt an
     robot.verarbeiteScanUndFahre(scan, 0.5, 0.0, 0.0);
 
-    // Wir erwarten, dass die HAL den Befehl für 0.5 m/s Vorwärtsfahrt empfangen hat!
-    // Bei HalMecanum haben dann Vorne Links (0) und Vorne Rechts (1) 0.5 m/s
-    DOUBLES_EQUAL(0.5, hal.getWheelSpeed(0), 0.0001);
+    // Durch den PT2-Filter rollt der Roboter im ersten Zeitschritt mit 
+    // eimer_1 = 0 + (0,5 - 0)*(0,05/0,2) = 0,125
+    // eimer_2 = 0 + (0,125 - 0)*(0,05/0,2) = 0,03125
+    DOUBLES_EQUAL(0.03125, hal.getWheelSpeed(0), 0.0001);
 } 
+
+// Test 3: Prüft, ob Fahrbefehle im RobotSystem durch den PT2Regler sanft geglättet werden!
+TEST(RobotSystemTestGroup, SmoothsVelocityUsingPT2Filter)
+{
+    HalMecanum hal;
+    RobotSystem robot(hal, 5.0, 5.0, 0.05);
+
+    std::vector<LidarMessung> scan = {{0.0, 5.0}};
+    double dt = 0.05; // 50 Millisekunden Zeitfenster
+
+    // Wir fordern schlagartig Vorwärtsfahrt mit 0.5 m/s 
+    robot.verarbeiteScanUndFahre(scan, 0.5, 0.0, 0.0, dt);
+
+    // Dank des PT2-Filters darf die Rad-Geschwindigkeit bei t = 0.05s NOCH NICHT sofort 
+    // auf 0.5 m/s stehen!
+    // Sie muss sanft darunter liegen (z.B. kleiner als 0.4 m/s, aber größer als 0.0 m/s):
+    double radGeschwindigkeit = hal.getWheelSpeed(0);
+    CHECK(radGeschwindigkeit < 0.4);
+    CHECK(radGeschwindigkeit > 0.0);
+}
