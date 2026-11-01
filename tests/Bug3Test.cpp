@@ -38,3 +38,26 @@ TEST(Bug3TestGroup, DrivesStraightTowardsGoalWhenPathClear)
     // Status muss GOAL_SEEKING sein!
     CHECK_EQUAL(static_cast<int>(BugState::GOAL_SEEKING), static_cast<int>(cmd.state));
 }
+
+// Test 3: Roboter schaltet von WALL_FOLLOWING zurück auf GOAL_SEEKING, sobald der Weg frei ist
+TEST(Bug3TestGroup, SwitchesBackToGoalSeeking)
+{
+    Bug3Controller bug(0.5);    // Sicherheitsabstand 0.5m
+
+    double roboterX = 0.0;
+    double roboterY = 0.0;
+    double roboterTheta = 0.0;
+    double zielX = 2.0;
+    double zielY = 0.0; // Ziel liegt bei 0 Grad (geradeaus)
+
+    // 1. Schock-Moment: Wnad direkt voraus (0.3m) -> Umschalten auf WALL_FOLLOWING
+    std::vector<LidarMessung> blockierterScan = {{0.0, 0.3}};
+    bug.update(roboterX, roboterY, roboterTheta, zielX, zielY, blockierterScan);
+
+    // 2. Jetzt ist die Wand umfahren: Der Weg nach vorne (0 Grad) ist wieder frei (5.0m)
+    std::vector<LidarMessung> freierScan = {{0.0, 5.0}};
+    Bug3Output cmd = bug.update(roboterX, roboterY, roboterTheta, zielX, zielY, freierScan);
+
+    // Der Roboter MUSS jetzt wieder zurück in den Zustand GOAL_SEEKING gewechselt sein
+    CHECK_EQUAL(static_cast<int>(BugState::GOAL_SEEKING), static_cast<int>(cmd.state));
+}
