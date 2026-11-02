@@ -25,22 +25,25 @@ private:
     double sicherheitsAbstand;
 
 public:
-    Bug3Controller(double abstand = 0.5) : currentState(BugState::GOAL_SEEKING), 
-        maxSpeed(0.5), sicherheitsAbstand(abstand) {}
+    Bug3Controller(double abstand = 0.5) 
+        : currentState(BugState::GOAL_SEEKING), 
+          maxSpeed(0.5), 
+          sicherheitsAbstand(abstand) {}
 
     Bug3Output update(double x, double y, double theta,
-        double goalX, double goalY, const std::vector<LidarMessung>& scan)
+        double goalX, double goalY, 
+        const std::vector<LidarMessung>& scan)
     {
         Bug3Output output;
 
-        // Vektor zum Ziel berechnen
+        // 1. Vektor zum Ziel berechnen
         double dx = goalX - x;
         double dy = goalY - y;
         double distanzZumZiel = std::sqrt(dx * dx + dy * dy);   // Messen Luftlinie
         double zielWinkelRad = std::atan2(dy, dx) - theta;
         double zielWinkelGrad = radZuGrad(zielWinkelRad);
 
-        // 1. Prüfen, ob im Blickwinkel zum Ziel ein Hindernis liegt
+        // 2. Prüfen, ob im Blickwinkel zum Ziel ein Hindernis liegt
         bool zielWegBlockiert = false;
         bool hindernisVoraus = false;
 
@@ -59,7 +62,7 @@ public:
             }
         }
 
-        // 2. Zielumschaltung (State Machine)
+        // 3. Zustand Umschalten (State Machine)
         if (currentState == BugState::GOAL_SEEKING && hindernisVoraus) {
             // Hindernis entdeckt -> Wand folgen
             currentState = BugState::WALL_FOLLOWING;
@@ -71,7 +74,7 @@ public:
 
         output.state = currentState;
 
-        // 3. Bewegungsbefehle generieren
+        // 4. Bewegungsbefehle generieren
         if (currentState == BugState::GOAL_SEEKING) {
             if (distanzZumZiel > 0.001) {
 
@@ -79,20 +82,55 @@ public:
                 output.vx = maxSpeed * (dx / distanzZumZiel);
                 output.vy = maxSpeed * (dy / distanzZumZiel);
 
+                // Sanfte Ausrichtung in Zielrichtung 
+                double kp_omega = 1.0;
+                output.omega = kp_omega * zielWinkelRad;
+                if (output.omega > 1.0) output.omega = 1.0;
+                if (output.omega < -1.0) output.omega = -1.0;
+
             } else {
 
                 output.vx = 0.0;
                 output.vy = 0.0;
+                output.omega = 0.0;
 
-            }
-            output.omega = 0.0;
-            
+            }  
         }
         else if (currentState == BugState::WALL_FOLLOWING) {
-            // Beim Wandfolgen gleitet der Roboter seitlich am Hindernis vorbei
-            output.vx = 0.0;
-            output.vy = maxSpeed; // Krabben-Gang nach rechts um das Hindernis herum
-            output.omega = 0.0;
+
+            // Minimalen Abstand zum Hindernis voraus ermittelt
+            double minHindernisAbstand = sicherheitsAbstand;
+            for (const auto& messung : scan) {
+                if (std::abs(messung.winkelGrad) < 30.0) {
+                    if (messung.distanzMeter < minHindernisAbstand) {
+                        minHindernisAbstand = messung.distanzMeter;
+                    }
+                }
+            }
+
+            // Dämpfungsfaktor (0.0 bis 1.0) basierend auf dem Abstand berechnen
+            double abstandsFaktor = minHindernisAbstand / sicherheitsAbstand;
+            if (abstandsFaktor < 0.0) abstandsFaktor = 0.0;
+            if (abstandsFaktor > 1.0) abstandsFaktor = 1.0;
+
+            // Gescheidiges Überblenden: Vorwärts sanft reduzieren, Seitwärts sanft 
+            // aufbauen (Elchtest-Prinzip)
+            output.vx = maxSpeed * abstandsFaktor;
+            output.vy = maxSpeed * (1.0 - abstandsFaktor);
+
+            // Dynamisches Kp für die Drehung (omega)
+            // Je näher das Hindernis rückt (abstandsFaktor -> 0.0), desto stärker
+            // steigt kP von 0.5 auf 2.5 an!
+            double kp_basis = 0.5;
+            double kp_dynamisch = kp_basis + (1.0 - abstandsFaktor) * 2.0;
+
+            // Sobald vx unter den kritischen  Schwellenwert von 0.2 m/s fällt, reißt 
+            // der Roboter die Nase weg!
+            if (output.vx < 0.2) {
+                output.omega = -kp_dynamisch * (1.0 - abstandsFaktor);
+            } else {
+                output.omega = 0.0;
+            }
         }
 
         return output;

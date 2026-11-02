@@ -1,7 +1,7 @@
 #include "RobotSystem.hpp"
 
-void RobotSystem::verarbeiteScanUndFahre(const 
-    std::vector<LidarMessung>& scan, double vx, double vy, double omega, double dt)
+void RobotSystem::verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, 
+    double vx, double vy, double omega, double dt)
 {
     // 1. SLAM-Controller verarbeitet den LIDAR-Scan und zeichnet die Karte
     slam.verarbeiteScan(scan);
@@ -18,10 +18,11 @@ void RobotSystem::verarbeiteScanUndFahre(const
 void RobotSystem::fahreZumZiel(double goalX, double goalY, 
     const std::vector<LidarMessung>& scan, double dt)
 {
-    // 1. SLAM verarbeitet den Scan und korrigiert die Roboterposition
+    // 1. SLAM verarbeitet den LIDAR-Scan und korrigiert die Roboterposition
     slam.verarbeiteScan(scan);
 
-    // 2. Bug3-Controller berechnet Navigationsentscheidung basierend auf Position & LIDAR
+    // 2. Bug3-Controller berechnet vollautomatisch die Ausweich- und Navigationsentscheidung
+    // (Inklusive dynamischer Elchtest-Abbremsung & adaptivem Einlenken bei Hindernissen)
     Bug3Output cmd = bug.update(getX(), getY(), getTheta(), goalX, goalY, scan);
 
     // 3. PT2-Filter glättet die geforderte Geschwindigkeiten
@@ -32,3 +33,4 @@ void RobotSystem::fahreZumZiel(double goalX, double goalY,
     // 4. Der fertige autonome Fahrbefehl geht direkt an die HAL
     hal.drive(vxGeglaettet, vyGeglaettet, omegaGeglaettet);
 }
+

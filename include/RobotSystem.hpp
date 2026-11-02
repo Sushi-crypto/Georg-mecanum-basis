@@ -1,8 +1,9 @@
 #pragma once
-#include "PT2Regler.hpp"
-#include "IHalDrive.hpp"
-#include "SlamController2D.h"
 #include "Bug3Controller.hpp"
+#include "IHalDrive.hpp"
+#include "PT2Regler.hpp"
+#include "SlamController2D.h"
+
 
 /**
  * @brief Die Haupt-Steuerung des Roboters
@@ -15,7 +16,7 @@ private:
     PT2Regler pt2Vx;    // S-Kurvenglättung für Vorwärtsgeschwindigkeit
     PT2Regler pt2Vy;    // S-Kurvenglättung für Seitwärtsgeschwindigkeit
     PT2Regler pt2Omega; // S-Kurvenglättung für Drehbewegung
-    Bug3Controller bug; // Unser Navigator an Bord
+    Bug3Controller bug; // Autonomer Bug3-Navigator mit adaptiver Wandfolge
 
 public:
     /**
@@ -45,6 +46,7 @@ public:
     void verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, 
         double vx, double vy, double omega, double dt = 0.05);
 
+    // Vollautonomische Zielanfahrt mit geschmeidigem Bug3-Ausweichmanöver
     void fahreZumZiel(double goalX, double goalY,
         const std::vector<LidarMessung>& scan,
         double dt = 0.05);
