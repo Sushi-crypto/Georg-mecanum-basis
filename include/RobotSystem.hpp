@@ -12,7 +12,8 @@ class RobotSystem {
 private:
     IHalDrive& hal;  // Fahrwerk (z.B. HalMecanum)
     SlamController2D slam;  // SLAM-Kartierung
-    PT2Regler pt2Vx;    // S-Kurcenglättung für Vorwärtsgeschwindigkeit
+    PT2Regler pt2Vx;    // S-Kurvenglättung für Vorwärtsgeschwindigkeit
+    PT2Regler pt2Vy;    // S-Kurvenglättung für Seitwärtsgeschwindigkeit
     Bug3Controller bug; // Unser Navigator an Bord
 
 public:
@@ -26,10 +27,9 @@ public:
     RobotSystem(IHalDrive& drivehardware, double kartenBreite, 
         double kartenHoehe, double aufloesung) : hal(drivehardware), 
         slam(kartenBreite, kartenHoehe, aufloesung), 
-        pt2Vx(0.0), 
+        pt2Vx(0.0), pt2Vy(0.0),
         bug(0.5)    // Sicherheitsabstand 0.5m
-    {
-    }
+    {}
 
     // Positions-Abfragen vom SLAM-Controller durchreichen
     double getX() const { return slam.getX(); }

@@ -36,6 +36,7 @@ public:
         // Vektor zum Ziel berechnen
         double dx = goalX - x;
         double dy = goalY - y;
+        double distanzZumZiel = std::sqrt(dx * dx + dy * dy);   // Messen Luftlinie
         double zielWinkelRad = std::atan2(dy, dx) - theta;
         double zielWinkelGrad = radZuGrad(zielWinkelRad);
 
@@ -72,10 +73,20 @@ public:
 
         // 3. Bewegungsbefehle generieren
         if (currentState == BugState::GOAL_SEEKING) {
-            // Wenn der Pfad frei ist: Fahre mit maxSpeed in Richtung Ziel
-            output.vx = maxSpeed;
-            output.vy = 0.0;
+            if (distanzZumZiel > 0.001) {
+
+                // Normierter Richtungsvektor mal maxSpeed -> Geht in X- UND Y-Richtung
+                output.vx = maxSpeed * (dx / distanzZumZiel);
+                output.vy = maxSpeed * (dy / distanzZumZiel);
+
+            } else {
+
+                output.vx = 0.0;
+                output.vy = 0.0;
+
+            }
             output.omega = 0.0;
+            
         }
         else if (currentState == BugState::WALL_FOLLOWING) {
             // Beim Wandfolgen gleitet der Roboter seitlich am Hindernis vorbei

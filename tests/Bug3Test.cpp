@@ -61,3 +61,27 @@ TEST(Bug3TestGroup, SwitchesBackToGoalSeeking)
     // Der Roboter MUSS jetzt wieder zurück in den Zustand GOAL_SEEKING gewechselt sein
     CHECK_EQUAL(static_cast<int>(BugState::GOAL_SEEKING), static_cast<int>(cmd.state));
 }
+
+// Test 4: Roboter steuert ein Ziel rein in Y-Richtung an (Seitwärts-Fahrt)
+TEST(Bug3TestGroup, DrivesTowardsGoalInYDirection)
+{
+    Bug3Controller bug(0.5);
+
+    double roboterX = 0.0;
+    double roboterY = 0.0;
+    double roboterTheta = 0.0;
+
+    // Ziel liegt rein seitlich bei (0.0, 2.0)
+    double zielX = 0.0;
+    double zielY = 0.0;
+
+    std::vector<LidarMessung> freierScan = {{0.0, 5.0}};
+
+    Bug3Output cmd = bug.update(roboterX, roboterY, roboterTheta,
+        zielX, zielY, freierScan);
+    
+        // Wir erwarten reine Y-Fahrt (vx = 0.0, vy = 0.5 m/s, omega = 0.0)
+        DOUBLES_EQUAL(0.0, cmd.vx, 0.0001);
+        DOUBLES_EQUAL(0.0, cmd.vy, 0.0001);
+        DOUBLES_EQUAL(0.0, cmd.omega, 0.0001);
+}

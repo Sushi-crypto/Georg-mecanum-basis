@@ -22,9 +22,10 @@ void RobotSystem::fahreZumZiel(double goalX, double goalY, const std::vector<Lid
     // 2. Bug3-Controller berechnet Navigationsentscheidung basierend auf Position & LIDAR
     Bug3Output cmd = bug.update(getX(), getY(), getTheta(), goalX, goalY, scan);
 
-    // 3. PT2-Filter glättet die geforderte Vorwärts-Geschwindigkeit
+    // 3. PT2-Filter glättet die geforderte Geschwindigkeiten
     double vxGeglaettet = pt2Vx.update(cmd.vx, dt);
+    double vyGeglaettet = pt2Vy.update(cmd.vy, dt);
 
     // 4. Der fertige autonome Fahrbefehl geht direkt an die HAL
-    hal.drive(vxGeglaettet, cmd.vy, cmd.omega);
+    hal.drive(vxGeglaettet, vyGeglaettet, cmd.omega);
 }
