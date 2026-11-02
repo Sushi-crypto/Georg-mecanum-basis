@@ -8,13 +8,15 @@ void RobotSystem::verarbeiteScanUndFahre(const
 
     // 2. PT2-Filter glättet die Wunsch-Geschwindigkeit vx sanft in einer S-Kurve
     double vxGeglaettet = pt2Vx.update(vx, dt);
+    double vyGeglaettet = pt2Vy.update(vy, dt);
+    double omegaGeglaettet = pt2Omega.update(omega, dt);
 
     // 3. Befehl direkt an die HAL durchreichen
-    hal.drive(vxGeglaettet, vy, omega);
+    hal.drive(vxGeglaettet, vyGeglaettet, omegaGeglaettet);
 }
 
-void RobotSystem::fahreZumZiel(double goalX, double goalY, const std::vector<LidarMessung>& scan,
-    double dt)
+void RobotSystem::fahreZumZiel(double goalX, double goalY, 
+    const std::vector<LidarMessung>& scan, double dt)
 {
     // 1. SLAM verarbeitet den Scan und korrigiert die Roboterposition
     slam.verarbeiteScan(scan);
@@ -25,7 +27,8 @@ void RobotSystem::fahreZumZiel(double goalX, double goalY, const std::vector<Lid
     // 3. PT2-Filter glättet die geforderte Geschwindigkeiten
     double vxGeglaettet = pt2Vx.update(cmd.vx, dt);
     double vyGeglaettet = pt2Vy.update(cmd.vy, dt);
+    double omegaGeglaettet = pt2Omega.update(cmd.omega, dt);
 
     // 4. Der fertige autonome Fahrbefehl geht direkt an die HAL
-    hal.drive(vxGeglaettet, vyGeglaettet, cmd.omega);
+    hal.drive(vxGeglaettet, vyGeglaettet, omegaGeglaettet);
 }

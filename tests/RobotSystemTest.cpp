@@ -81,3 +81,21 @@ TEST(RobotSystemTestGroup, DrivesToGoalAutonomouslyUsingBug3)
     // Bug3 verlangt 0.5m/s Vorwärtsfahrt, PT2 dämpft den 1. Zeitschritt auf 0.03125 m/s
     DOUBLES_EQUAL(0.03125, hal.getWheelSpeed(0), 0.0001);
 }
+
+// Test 5: RobotSystem dämpft auch die Drehgeschwindigkeit (omega) mit pt2Omega!
+TEST(RobotSystemTestGroup, SmoothRotationalVelocitxy)
+{
+    HalMecanum hal;
+    RobotSystem robot(hal, 5.0, 5.0, 0.05);
+
+    // Wir stellen das Ziel schräg bei (2.0, 2.0) auf -> Bug3 wird eine Drehung (omega > 0) verlangen
+    std::vector<LidarMessung> scan = {{0.0, 5.0}};
+
+    // Wir verlangen schlagartig eine Drehung von omega = 1.0 rad/s
+    robot.verarbeiteScanUndFahre(scan, 0.0, 0.0, 1.0, 0.05);
+
+    // pt2Omega muss den Wert im ersten Zeitschritt (dt=0.05) exakt auf 
+    // eimer_1 = 0 + (1.0 - 0) * (0.05 / 0.2) = 0.25 rad/s
+    // eimer_2 = 0 + (0.25 - 0) * (0.05 / 0.2) = 0.0625 rad/s dämpfen:
+    DOUBLES_EQUAL(0.0625, hal.getWheelSpeed(0), 0.0001);
+}
