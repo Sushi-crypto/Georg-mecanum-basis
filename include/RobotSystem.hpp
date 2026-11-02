@@ -2,6 +2,7 @@
 #include "PT2Regler.hpp"
 #include "IHalDrive.hpp"
 #include "SlamController2D.h"
+#include "Bug3Controller.hpp"
 
 /**
  * @brief Die Haupt-Steuerung des Roboters
@@ -12,6 +13,7 @@ private:
     IHalDrive& hal;  // Fahrwerk (z.B. HalMecanum)
     SlamController2D slam;  // SLAM-Kartierung
     PT2Regler pt2Vx;    // S-Kurcenglättung für Vorwärtsgeschwindigkeit
+    Bug3Controller bug; // Unser Navigator an Bord
 
 public:
     /**
@@ -23,7 +25,9 @@ public:
      */
     RobotSystem(IHalDrive& drivehardware, double kartenBreite, 
         double kartenHoehe, double aufloesung) : hal(drivehardware), 
-        slam(kartenBreite, kartenHoehe, aufloesung), pt2Vx(0.0)
+        slam(kartenBreite, kartenHoehe, aufloesung), 
+        pt2Vx(0.0), 
+        bug(0.5)    // Sicherheitsabstand 0.5m
     {
     }
 
@@ -36,4 +40,8 @@ public:
     // inklusive PT2-Filter
     void verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, 
         double vx, double vy, double omega, double dt = 0.05);
+
+    void fahreZumZiel(double goalX, double goalY,
+        const std::vector<LidarMessung>& scan,
+        double dt = 0.05);
 };

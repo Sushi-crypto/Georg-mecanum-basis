@@ -7,8 +7,24 @@ void RobotSystem::verarbeiteScanUndFahre(const
     slam.verarbeiteScan(scan);
 
     // 2. PT2-Filter glättet die Wunsch-Geschwindigkeit vx sanft in einer S-Kurve
-    double vxGeglaetet = pt2Vx.update(vx, dt);
+    double vxGeglaettet = pt2Vx.update(vx, dt);
 
     // 3. Befehl direkt an die HAL durchreichen
-    hal.drive(vxGeglaetet, vy, omega);
+    hal.drive(vxGeglaettet, vy, omega);
+}
+
+void RobotSystem::fahreZumZiel(double goalX, double goalY, const std::vector<LidarMessung>& scan,
+    double dt)
+{
+    // 1. SLAM verarbeitet den Scan und korrigiert die Roboterposition
+    slam.verarbeiteScan(scan);
+
+    // 2. Bug3-Controller berechnet Navigationsentscheidung basierend auf Position & LIDAR
+    Bug3Output cmd = bug.update(getX(), getY(), getTheta(), goalX, goalY, scan);
+
+    // 3. PT2-Filter glättet die geforderte Vorwärts-Geschwindigkeit
+    double vxGeglaettet = pt2Vx.update(cmd.vx, dt);
+
+    // 4. Der fertige autonome Fahrbefehl geht direkt an die HAL
+    hal.drive(vxGeglaettet, cmd.vy, cmd.omega);
 }

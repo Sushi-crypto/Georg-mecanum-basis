@@ -65,3 +65,19 @@ TEST(RobotSystemTestGroup, SmoothsVelocityUsingPT2Filter)
     CHECK(radGeschwindigkeit < 0.4);
     CHECK(radGeschwindigkeit > 0.0);
 }
+
+// Test 4: RobotSystem nutzt den Bug3Controller, um selbstständig ein Ziel anzusteuern
+TEST(RobotSystemTestGroup, DrivesToGoalAutonomouslyUsingBug3)
+{
+    HalMecanum hal;
+    RobotSystem robot(hal, 5.0, 5.0, 0.05);
+
+    // Freie Fahrt nach vorne (LIDAR sieht 5.0m weit)
+    std::vector<LidarMessung> scan = {{0.0, 5.0}};
+
+    // Wir geben dem Roboter nur noch das Ziel (2.0, 0.0) vor!
+    robot.fahreZumZiel(2.0, 0.0, scan, 0.05);
+
+    // Bug3 verlangt 0.5m/s Vorwärtsfahrt, PT2 dämpft den 1. Zeitschritt auf 0.03125 m/s
+    DOUBLES_EQUAL(0.03125, hal.getWheelSpeed(0), 0.0001);
+}
