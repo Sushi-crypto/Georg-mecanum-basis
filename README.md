@@ -1,4 +1,4 @@
-# 🤖 Georg Mecanum Basis - Autonome Robotersteuerung
+# 🤖 Georg Roboter Basis - Autonome Robotersteuerung
 
 Willkommen zur Dokumentation des **Georg-Mecanum-Basis** Projekts! Hierbei handelt es sich um eine hochmoderne, modular aufgebaute C++ Software-Architektur zur autonomen Navigation holonomer Mecanum-Roboter.
 
