@@ -6,16 +6,17 @@ class PT2Regler
 private:
     double eimer1; // Erste Dämpfungsstude (PT1)
     double eimer2; // Zweite Dämpfungsstufe (PT2)
-    double T = 0.2 ;       // Zeitkonstante (je größer T, desto weicher/langsamer)
+    double T;       // Zeitkonstante (je größer T, desto weicher/langsamer)
 
 public:
     // Der Konstruktor: Standardgemäß starten wir bei 100.0, 
     // aber wir können jetzt auch mit 0.0 anfangen
 
-    PT2Regler(double startwert = 100.0)
+    PT2Regler(double startwert = 0.0, double zeitkonstante = 0.2)
+        : eimer1(startwert), 
+          eimer2(startwert), 
+          T(zeitkonstante)
     {
-        eimer1 = startwert;
-        eimer2 = startwert;
     }
 
     // Überprüft im dt-Zeitfenster was der Status des Eimerstandes ist

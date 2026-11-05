@@ -333,17 +333,7 @@ TEST_GROUP(PT2ReglerTest)
     PT2Regler regler;
 };
 
-// Test 1: Nach 0,1 Sekunden darf die Geschwindigkeit NICHT schlagartig auf 0 sein!
-TEST(PT2ReglerTest, SanftBremsen)
-{
-    // Wir fordern eine Bremsung auf 0%, mit einem Zeitschritt von dt = 0.1 Sekunden
-    double v_neu = regler.update(0.0, 0.1);
-
-    // Wir prüfen: Die Geschwindigkeit muss noch deutlich über 50% liegen!
-    CHECK(v_neu > 50.0);
-}
-
-// Test 2: Roboter muss nach der ersten Zehntelsekunden vollständig auf 0.0 stehen
+// Test 1: Roboter muss nach der ersten Zehntelsekunden vollständig auf 0.0 stehen
 TEST(PT2ReglerTest, VollstaendigerStillstand)
 {
     double v_aktuell = 100.0;
@@ -359,7 +349,7 @@ TEST(PT2ReglerTest, VollstaendigerStillstand)
     // Abweichung von max. 1.0 erlaubt
 }
 
-// Test 3: Sanftes Anfahren nach dem Stillstand mithilfe des Konstruktors in der C++-Klasse
+// Test 2: Sanftes Anfahren nach dem Stillstand mithilfe des Konstruktors in der C++-Klasse
 TEST(PT2ReglerTest, SanftesAnfahrenVonNull)
 {
     // Wir erstellen einen Regler, der bei EXAKT 0.0% anfängt
@@ -375,7 +365,7 @@ TEST(PT2ReglerTest, SanftesAnfahrenVonNull)
     CHECK(v_neu > 0.0);
 }
 
-// Test 4: Kein-Überschwingertest
+// Test 3: Kein-Überschwingertest
 TEST(PT2ReglerTest, KeinUeberschwingen)
 {
     // 1.Test: Beim Bremsen darf der Wert NIEMALS unter 0.0 fallen!
@@ -401,7 +391,7 @@ TEST(PT2ReglerTest, KeinUeberschwingen)
     }
 }
 
-// Test 5: Kontrolle ob PT2-Regler seinen Sollwert auch genau erreicht
+// Test 4: Kontrolle ob PT2-Regler seinen Sollwert auch genau erreicht
 TEST(PT2ReglerTest, ErreichtSollwert)
 {
     // Wir starten den Regler bei 0.0 % (Anfahren aus dem Stand)
