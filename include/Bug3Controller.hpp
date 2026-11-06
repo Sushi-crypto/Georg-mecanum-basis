@@ -46,11 +46,13 @@ public:
         double dx = goalX - x;
         double dy = goalY - y;
         double distanzZumZiel = std::sqrt(dx * dx + dy * dy);   
-        
+        double zielWinkelRad = std::atan2(dy, dx) - theta;
+        double zielWinkelGrad = radZuGrad(zielWinkelRad);
 
         // 2. Prüfen, ob im Blickwinkel zum Ziel ein Hindernis liegt
         bool hindernisVoraus = false;
         bool hindernisSeitlich = false;
+        bool zielWegBlockiert = false;
 
         for (const auto& messung : scan) {
 
@@ -64,18 +66,24 @@ public:
             if (messung.winkelGrad >= 30.0 && messung.winkelGrad <= 120.0
                 && messung.distanzMeter< sicherheitsAbstand) {
                     hindernisSeitlich = true;
-                }
+            }
+
+            // Luftlinie zum Ziel prüfen
+            double winkelDiff = std::abs(messung.winkelGrad - zielWinkelGrad);
+            if (winkelDiff <= 20.0 && messung.distanzMeter < sicherheitsAbstand) {
+                zielWegBlockiert = true;
+            }
         }
 
         // 3. Zustand Umschalten (State Machine)
         if (currentState == BugState::GOAL_SEEKING) {
-            if (hindernisVoraus) {
+            if (hindernisVoraus || zielWegBlockiert) {
                 currentState = BugState::WALL_FOLLOWING;
                 nachlaufTimer = nachlaufZeit;   // 0.5s Timer startet
             }
         }
         else if (currentState == BugState::WALL_FOLLOWING) {
-            if (hindernisVoraus || hindernisSeitlich) {
+            if (hindernisVoraus || hindernisSeitlich || zielWegBlockiert) {
                 // Wand ist aktiv da -> Timer auf 0.5s halten
                 nachlaufTimer = nachlaufZeit;
             } else {
@@ -110,8 +118,8 @@ public:
         else if (currentState == BugState::WALL_FOLLOWING) {
             if (hindernisVoraus) {
                 // Vor dem Hindernis: Vorwärts stoppen, rein seitlich ausweichen
-                output.vx = 0.2;
-                output.vy = 0.8 * maxSpeed;
+                output.vx = 0.0;
+                output.vy = maxSpeed;
                 output.omega = 0.0;
             } else {
                 // An der Flanke entlang: Vorwärtsgleiten an der Kiste

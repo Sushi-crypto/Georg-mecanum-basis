@@ -1,4 +1,5 @@
 #include "RobotSystem.hpp"
+#include "LidarUtils.hpp"
 
 void RobotSystem::verarbeiteScanUndFahre(const std::vector<LidarMessung>& scan, 
     double vx, double vy, double omega, double dt)
@@ -31,6 +32,30 @@ void RobotSystem::fahreZumZiel(double goalX, double goalY,
     double omegaGeglaettet = pt2Omega.update(cmd.omega, dt);
 
     // 4. Der fertige autonome Fahrbefehl geht direkt an die HAL
+    hal.drive(vxGeglaettet, vyGeglaettet, omegaGeglaettet);
+}
+
+void RobotSystem::fahreZumZielDualLidar(
+    double goalX, double goalY,
+    const std::vector<LidarMessung>& scanLinks,
+    const std::vector<LidarMessung>& scanRechts,
+    double dt)
+{
+    // 1. Dual-LIDAR zu 270°-Panorama verschmelzen
+    std::vector<LidarMessung> gesamtScan = LidarUtils::fuegeDualLidarZusammen(scanLinks, scanRechts);
+
+    // 2. Ortung und Kartierung (SLAM) aktualisieren
+    slam.verarbeiteScan(gesamtScan);
+
+    // 3. Pfadplanung (Bug3) mit dem Panoramabild
+    Bug3Output cmd = bug.update(getX(), getY(), getTheta(), goalX, goalY, gesamtScan, dt);
+
+    // 4. Beschleunigung glätten (PT2)
+    double vxGeglaettet = pt2Vx.update(cmd.vx, dt);
+    double vyGeglaettet = pt2Vy.update(cmd.vy, dt);
+    double omegaGeglaettet = pt2Omega.update(cmd.omega, dt);
+
+    // 5. Motor-Befehl an Hardware senden
     hal.drive(vxGeglaettet, vyGeglaettet, omegaGeglaettet);
 }
 

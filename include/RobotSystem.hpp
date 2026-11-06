@@ -50,4 +50,10 @@ public:
     void fahreZumZiel(double goalX, double goalY,
         const std::vector<LidarMessung>& scan,
         double dt = 0.05);
+
+    void fahreZumZielDualLidar(
+        double goalX, double goalY,
+        const std::vector<LidarMessung>& scanLinks,
+        const std::vector<LidarMessung>& scanRechts,
+        double dt = 0.05);
 };
