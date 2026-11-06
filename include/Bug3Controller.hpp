@@ -111,7 +111,7 @@ public:
             if (hindernisVoraus) {
                 // Vor dem Hindernis: Vorwärts stoppen, rein seitlich ausweichen
                 output.vx = 0.2;
-                output.vy = maxSpeed;
+                output.vy = 0.8 * maxSpeed;
                 output.omega = 0.0;
             } else {
                 // An der Flanke entlang: Vorwärtsgleiten an der Kiste

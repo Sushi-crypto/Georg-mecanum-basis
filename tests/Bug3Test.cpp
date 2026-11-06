@@ -8,6 +8,36 @@
 #include <fstream>
 #include <algorithm>
 
+// Hilfsstrukturen für Formen
+struct RechteckHindernis {
+    double minX, maxX;
+    double minY, maxY;
+};
+
+// Generischer Front-LIDAR Scan
+double berechneMultiFrontLidar(double x, double y, const std::vector<RechteckHindernis>& kisten) {
+    double minDist = 5.0;   // max. Sichtweite 5 Meter
+    for (const auto& kiste : kisten) {
+        if (y >= kiste.minY - 0.1 && y <= kiste.maxY + 0.1 && x < kiste.minX) {
+            double dist = kiste.minX - x;
+            if (dist < minDist) minDist = dist;
+        }
+    }
+    return minDist;
+}
+
+// Generischer Seiten-LIDAR Scan
+double berechneMultiSeitenLidar(double x, double y, const std::vector<RechteckHindernis>& kisten) {
+    double minDist = 5.0;
+    for (const auto& kiste : kisten) {
+        if (x >= kiste.minX && x <= kiste.maxX) {
+            double dist = std::abs(y - kiste.maxY);
+            if (dist < minDist) minDist = dist;
+        }
+    }
+    return minDist;
+}
+
 // Testgruppe für den Bug3-Algorithmus
 TEST_GROUP(Bug3TestGroup)
 {
@@ -144,7 +174,7 @@ TEST(Bug3TestGroup, ActivateRotationalEmergency)
     DOUBLES_EQUAL(0.2, cmd.vx, 0.0001);
 
     // 3. Seitwärtsfahrt vy legt ordentlich zu (exakt 0.4 m/s)
-    DOUBLES_EQUAL(0.5, cmd.vy, 0.0001);
+    DOUBLES_EQUAL(0.4, cmd.vy, 0.0001);
 
     // 4. Nase soll immer vorne bleiben
     DOUBLES_EQUAL(0.0, cmd.omega, 0.0001);
@@ -199,12 +229,6 @@ TEST(Bug3TestGroup, ExportRealTrajectoryData)
 }
 
 // Test 7: Testet die Krabbenfahrt an einer flachen Wand
-double abstandZuRechteck(double x, double y, double minX, double maxX, double minY, double maxY) {
-    double dx = std::max({minX - x, 0.0, x - maxX});
-    double dy = std::max({minY - y, 0.0, y - maxY});
-    return std::sqrt(dx * dx + dy * dy);
-}
-
 TEST(Bug3TestGroup, AvoidsRectangularObstacle)
 {
     Bug3Controller bug(0.4);    // 0.4 m Sicherheitsabstand
@@ -266,7 +290,66 @@ TEST(Bug3TestGroup, AvoidsRectangularObstacle)
         }
         csv.close();
     }
-    
+    /*
     // Visualisierungsskript aufrufen
     std::system("python3 ../script/visualize_trajectory.py");
+    */
+}
+
+// Test 8: Slalom Fahren mit mehreren Kisten hintereinander
+TEST(Bug3TestGroup, AvoidsMultipleObstaclesSlalom)
+{
+    Bug3Controller bug(0.4);
+    PT2Regler pt2Vx(0.0, 0.08);
+    PT2Regler pt2Vy(0.0, 0.08);
+    PT2Regler pt2VOmega(0.0, 0.08);
+
+    double x = 0.0, y = 0.0, theta = 0.0;
+    double goalX = 4.0, goalY = 0.0; // Ziel weiter hinten bei (4.0, 0.0)
+    double dt = 0.05;
+
+    // Zwei Kisten des Slalom-Parkurs
+    // Kiste 1: x = 0.8 bis 1.4m (unten)
+    // Kiste 2: x = 2.2 bis 2.8m (versetzt weiter oben)
+    std::vector<RechteckHindernis> kisten = {
+        {0.8, 1.4, -0.3, 0.3},
+        {2.2, 2.8, -0.1, 0.5}
+    };
+
+    std::ofstream csv("../data/trajektorie_slalom_daten.csv");
+
+    if (csv.is_open()) {
+        csv << "x,y,theta,state\n";
+
+        for (int i = 0; i < 280; ++i)
+        {
+            double distFront = berechneMultiFrontLidar(x, y, kisten);
+            double distSeite = berechneMultiSeitenLidar(x, y, kisten);
+
+            // Dual-LIDAR Scanpaket (0° Front + 90° Seite)
+            std::vector<LidarMessung> scan = {
+                { 0.0,  distFront }, // Front-LIDAR
+                { 90.0, distSeite }  // Seiten-LIDAR
+            }; 
+
+            // C++ Bug3Controller aufrufen
+            Bug3Output cmd = bug.update(x, y, theta, goalX, goalY, scan, dt);
+
+            // PT2-Filterung
+            double vxG    = pt2Vx.update(cmd.vx, dt);
+            double vyG    = pt2Vy.update(cmd.vy, dt);
+            double omegaG = pt2VOmega.update(cmd.omega, dt);
+
+            // Roboter-Kinematik
+            x += (vxG * std::cos(theta) - vyG * std::sin(theta)) * dt;
+            y += (vxG * std::sin(theta) + vyG * std::cos(theta)) * dt;
+            theta += omegaG * dt;
+
+            csv << x << "," << y << "," << theta << "," << static_cast<int>(cmd.state) << "\n";
+        }
+        csv.close();
+    }
+
+    // Visualisierungsskript aufrufen
+    std::system("python3 ../script/trajectory_slalom.py");
 }
