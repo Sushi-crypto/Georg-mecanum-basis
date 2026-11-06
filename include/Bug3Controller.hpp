@@ -54,12 +54,17 @@ public:
         bool hindernisSeitlich = false;
         bool zielWegBlockiert = false;
 
+        double distanzFront = sicherheitsAbstand;
+
         for (const auto& messung : scan) {
 
             // Hindernis direkt voraus? (Front-Sensor = +- 20°)
-            if (std::abs(messung.winkelGrad) <= 20.0 
-                && messung.distanzMeter < sicherheitsAbstand) {
+            if (std::abs(messung.winkelGrad) <= 20.0) {
+                if (messung.distanzMeter < distanzFront) {
+                    distanzFront = messung.distanzMeter;
+                } if (messung.distanzMeter < sicherheitsAbstand) {
                     hindernisVoraus = true;
+                }      
             }
 
             // Hindernis seitlich? (Seiten-Sensor 30° bis 120°)
@@ -117,9 +122,13 @@ public:
         }
         else if (currentState == BugState::WALL_FOLLOWING) {
             if (hindernisVoraus) {
+                // Proportionale Abfederung basierend auf der verbleibenden Distanz:
+                double faktor = distanzFront / sicherheitsAbstand;
+                faktor = std::max(0.0, std::min(1.0, faktor));  // Sicherheitsbereich [0.0, 1.0]
+
                 // Vor dem Hindernis: Vorwärts stoppen, rein seitlich ausweichen
-                output.vx = 0.0;
-                output.vy = maxSpeed;
+                output.vx = maxSpeed * faktor;  // sanftes Abbremsen in X(~0.3 m/s)
+                output.vy = maxSpeed * (1.0 - faktor);  // Sanfter Aufbau in Y (~0.2 m/s)
                 output.omega = 0.0;
             } else {
                 // An der Flanke entlang: Vorwärtsgleiten an der Kiste

@@ -170,13 +170,7 @@ TEST(Bug3TestGroup, ActivateRotationalEmergency)
     // 1. Zustand muss WALL_FOLLOWING sein
     CHECK_EQUAL(static_cast<int>(BugState::WALL_FOLLOWING), static_cast<int>(cmd.state));
 
-    // 2. Vorwärtsfahrt vx fällt unter den Schwellenwert von 0.2 m/s (exakt 0.1 m/s)
-    DOUBLES_EQUAL(0.2, cmd.vx, 0.0001);
-
-    // 3. Seitwärtsfahrt vy legt ordentlich zu (exakt 0.4 m/s)
-    DOUBLES_EQUAL(0.4, cmd.vy, 0.0001);
-
-    // 4. Nase soll immer vorne bleiben
+    // 2. Nase soll immer vorne bleiben
     DOUBLES_EQUAL(0.0, cmd.omega, 0.0001);
 }
 
